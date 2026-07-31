@@ -1,27 +1,20 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const { WebSocketServer } = require('ws');
+/**
+ * Entry point for the SportyLive backend.
+ * Imports the HTTP server from app.js, warms up the DB connection,
+ * and starts listening.
+ */
 
-const app = express();
-app.use(express.json());
-const server = http.createServer(app);
+import { server } from './src/app.js';
+import { pingDatabase } from './src/db/index.js';
 
-const io = new Server(server);
-const wss = new WebSocketServer({ server });
+const PORT = process.env.PORT || 8080;
 
-app.get('/', (req, res) => {
-  res.send('SportyLive backend');
-});
+/**
+ * Warm up the Neon database connection before accepting traffic,
+ * so the first request doesn't hit a cold-start timeout.
+ */
+await pingDatabase();
 
-io.on('connection', (socket) => {
-  console.log('Socket.IO client connected');
-});
-
-wss.on('connection', (ws) => {
-  console.log('WebSocket client connected');
-});
-
-server.listen(8080, () => {
-  console.log('Server running on port 8080');
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
